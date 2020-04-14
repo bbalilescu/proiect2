@@ -3,21 +3,25 @@
 
 using namespace std;
 
+int ad[10201][10201];
+
 //Rulati in fullscreen pentru a vizualiza corect arealul si botmapul.
 
 void afisA(int A[101][101]); //afisarea arealului
-void afisB(int A[202][202]); //afissarea hartii robotului
+void afisB(int A[101][101]); //afissarea hartii robotului
 void generare(int areal[101][101]); //generarea arealului
-void parcurgere(int areal[101][101], int botmap [202][202], int x, int y,int a, int b); //parcurgerea arealului
+void parcurgere(int areal[101][101],int ad[10201][10201], int botmap[101][101], int x, int y); //parcurgerea arealului
+//void dfs(int k, long long int ad[10201][10201], int areal[101][101], int botmap [202][202]);
+
 
 int main()
 {
     int areal[101][101]={0},o,i,j;
-    int botmap[202][202]={0}; //harta din memoria robotului
+    int botmap[101][101]={0};//harta din memoria robotului
     do
     {
         cout<<"Optiuni disponibile:"<<endl;
-        cout<<"(1) Generare de areal"<<endl<<"(2) Parcurgere de areal"<<endl<<"(3) Afisare areal"<<endl<<"(4) Afisare harta"<<endl<<"(5) Resetare areal"<<endl<<"(0) Iesire din program"<<endl<<"Alegeti optiunea: ";
+        cout<<"(1) Generare de areal"<<endl<<"(2) Parcurgere de areal"<<endl<<"(3) Afisare areal"<<endl<<"(4) Afisare harta"<<endl<<"(5) Resetare areal si harta"<<endl<<"(0) Iesire din program"<<endl<<"Alegeti optiunea: ";
         cin>>o;
         cout<<endl;
         if(o==1){
@@ -34,8 +38,19 @@ int main()
                 x=rand()%100+1;
                 y=rand()%100+1;
             }
-            parcurgere(areal,botmap,x,y,101,101);
-            areal[x][y]=6;
+            for(i=0;i<101;i++)
+                for(j=0;j<101;j++){
+                    if((areal[i][j]==0)&&(areal[i][j+1]==0))
+                        ad[i*j+j][i*(j+1)+j+1]=ad[i*(j+1)+j+1][i*j+j]=1;
+                    if((areal[i][j]==0)&&(areal[i][j-1]==0))
+                        ad[i*j+j][i*(j-1)+j-1]=ad[i*(j-1)+j-1][i*j+j]=1;
+                    if((areal[i][j]==0)&&(areal[i-1][j]==0))
+                        ad[i*j+j][(i-1)*j+j]=ad[(i-1)*j+j][i*j+j]=1;
+                    if((areal[i][j]==0)&&(areal[i+1][j]==0))
+                        ad[i*j+j][(i+1)*j+j]=ad[(i+1)*j+j][i*j+j]=1;
+            }
+            parcurgere(areal,ad,botmap,x,y);
+            areal[x][y]=botmap[x][y]=6;
         }
         else if(o==3)
             afisA(areal);
@@ -43,8 +58,10 @@ int main()
             afisB(botmap);
         else if(o==5){
             for(i=0;i<101;i++)
-                for(j=0;j<101;j++)
+                for(j=0;j<101;j++){
                 areal[i][j]=0;
+                botmap[i][j]=0;
+                ad[i*j+j][j]=ad[j][i*j+j]=0;}
         }
         else if(o!=0)
             cout<<"Optiunea selectata nu este disponibila. Va rugam alegeti una din optiunile disponibile"<<endl;
@@ -73,17 +90,19 @@ void afisA(int A[101][101])
     }
 }
 
-void afisB(int A[202][202])
+void afisB(int A[101][101])
 {
     int i,j;
-    for(i=0; i<=201; i++)
+    for(i=0; i<=100; i++)
     {
 
-        for(j=0; j<=201; j++)
+        for(j=0; j<=100; j++)
             if(A[i][j]==0)
                 cout<<" ";
             else if(A[i][j]==1)
                 cout<<"1";
+            else if(A[i][j]==6)
+                cout<<"S";
         cout<<endl;
     }
 }
@@ -172,17 +191,15 @@ void generare(int areal[101][101])
         areal[x][y]=7;
     }
 }
-
-void parcurgere(int areal[101][101], int botmap [202][202], int x, int y,int a, int b)
+void parcurgere(int areal[101][101],int ad[10201][10201], int botmap[101][101], int x, int y)
 {
-    areal[x][y]=5;
-    botmap[a][b]=1;
-    if(areal[x][y+1]==0)
-        parcurgere(areal,botmap,x,y+1,a,b+1);
-    if(areal[x+1][y]==0)
-        parcurgere(areal,botmap,x+1,y,a+1,b);
-    if(areal[x][y-1]==0)
-        parcurgere(areal,botmap,x,y-1,a,b-1);
-    if(areal[x-1][y]==0)
-        parcurgere(areal,botmap,x-1,y,a-1,b);
+  int i,j;
+  areal[x][y]=5;
+  for(int i=0;i<101;i++)
+    for(int j=0;j<101;j++)
+    if(ad[x*y+y][i*j+j]==1 && areal[i][j]==0)
+    {
+      botmap[i][j]=1;
+      parcurgere(areal,ad,botmap,i,j);
+    }
 }
